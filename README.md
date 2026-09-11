@@ -2,7 +2,7 @@
 
 ## 🌐 Interactive Map
 
-### **[→ Launch Interactive Risk Map ←](https://cchfvirus.github.io/Nipah-Virus-High-Resolution-Risk-Mapping/)**
+### **[→ Launch Interactive Risk Map ←](https://geospatialhealth.github.io/Nipah-Virus-High-Resolution-Risk-Mapping/)**
 
 ---
 
