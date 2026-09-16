@@ -412,12 +412,11 @@
                 mode: 'lch',
                 continuousLegend: true,
                 useSdStretch: true,
-                infoDescription: 'Ensemble median suitability from biomod2 (GLM, MAXNET, MARS; 120 candidate models). ' +
-                    'Ensemble median calibration AUC = 0.831, with 77.8% sensitivity and 73.6% specificity. ' +
-                    'Temperature PC2 was the single most important predictor (25.7%), and temperature and ' +
-                    'precipitation together account for 82.3% of variable importance, with EVI supplying the ' +
-                    'remaining 17.8%. Validated by partial ROC: pAUC ratio = 1.933 at the 50% area threshold ' +
-                    'and 2.667 at the 30% area threshold (both p&lt;0.001).'
+                infoDescription: 'Ensemble median ecological suitability from biomod2 (GLM, MAXNET, MARS) using 90 spatially thinned NiV-associated records and spatial block cross-validation. ' +
+                    'Mean validation AUC = 0.691; partial-ROC ratios were 1.933 at the 50% area threshold and 2.667 at the 30% threshold (both p&lt;0.001). ' +
+                    'Temperature accounted for 54.7% of grouped variable importance, precipitation 27.6%, and vegetation 17.8%. ' +
+                    'Regional and occurrence-definition sensitivity analyses evaluated model robustness. The human-spillover-only model (77 independently thinned records) closely reproduced the integrated surface (Spearman rho = 0.956 overall). ' +
+                    'Kerala-specific predictions remain exploratory because of the small regional calibration sample.'
             },
             'enm_cv': {
                 file: 'enm_cv.tif',
@@ -429,21 +428,13 @@
                 mode: 'lch',
                 continuousLegend: true,
                 useSdStretch: true,
-                infoDescription: 'Ensemble coefficient of variation (EMcv) from biomod2, representing spatial ' +
-                    'uncertainty across the 120 individual model predictions before ensemble aggregation. Low CV ' +
-                    'indicates strong agreement among GLM, MAXNET, and MARS; high CV identifies cells where ' +
-                    'algorithm responses to PC predictors diverge. Observed range 7.8–727.5. Because CV is a ' +
-                    'ratio of standard deviation to mean, values inflate wherever mean suitability approaches ' +
-                    'zero, so the highest CV cells largely mark low-suitability background rather than contested ' +
-                    'high-suitability areas; read this layer alongside the suitability surface, not on its own. ' +
-                    'Uncertainty is also structurally higher in the Kerala sub-region, where sparse occurrence ' +
-                    'data (n=10, against n=80 in Bangladesh and West Bengal) produced unstable individual fits. ' +
-                    'Note: this layer is algorithm uncertainty within the niche model, and is distinct from the ' +
-                    'Ensemble CV layer, which measures sensitivity to land-cover weighting parameters.'
+                infoDescription: 'Coefficient of variation among ecological niche model predictions, representing spatial uncertainty associated with the GLM, MAXNET, and MARS ensemble. ' +
+                    'Lower values indicate greater agreement among model predictions; higher values indicate greater relative variation. Because CV is calculated relative to mean suitability, values can become large where mean suitability approaches zero and should be interpreted alongside the ecological suitability surface. ' +
+                    'This layer represents ENM/model uncertainty and is distinct from the 25-scenario parameter-sensitivity CV layer. Kerala-specific inference remains less certain because of the small regional calibration sample.'
             },
             'basic_risk': {
                 file: 'risk_basic.tif',
-                name: 'Baseline Risk (ENM + Pop)',
+                name: 'Baseline Population Exposure (ENM + Pop)',
                 discreteColors: {
                     0: '#000000', 1: '#FFFFBE', 2: '#FFDD00',
                     3: '#FFAA00', 4: '#FF6600', 6: '#FF0000', 9: '#A80000'
@@ -451,14 +442,9 @@
                 noDataValue: 15,
                 labels: ['No Risk', 'Very High Risk'],
                 description: '',
-                infoDescription: 'Product of ENM suitability (0–3) and ambient population (0–3) classes, ' +
-                    'yielding seven risk levels {0,1,2,3,4,6,9}. Both layers classified independently using ' +
-                    'univariate natural-breaks clustering; population log-transformed before classification to ' +
-                    'account for skewed density distribution. This layer represents a population-exposure ' +
-                    'surface, not biological spillover probability. 137.0M people (46.1% of the study ' +
-                    'population) fall in High or Very High risk; Kerala\'s proportional exposure (50.9%) ' +
-                    'exceeds that of Bangladesh and West Bengal (45.7%) despite Kerala holding only 8.7% ' +
-                    'of the study population.',
+                infoDescription: 'Relative population-exposure prioritization surface produced by multiplying independently classified ecological suitability (0-3) and ambient population (0-3), yielding classes {0,1,2,3,4,6,9}. ' +
+                    'The index identifies locations where ecological suitability and human population exposure coincide; it is not an externally calibrated probability of NiV spillover, infection, or future case occurrence. ' +
+                    'Approximately 137.0 million people (46.1% of the study population) occur in High or Very High categories. Kerala-specific exposure estimates should be interpreted as exploratory.',
                 customLegend: true,
                 discreteDisplay: true,
                 legendItems: [
@@ -473,7 +459,7 @@
             },
             'blend_risk': {
                 file: 'risk_blend.tif',
-                name: 'Landcover Weighted Risk (ENM + Pop + LC)',
+                name: 'Land-Cover-Weighted Exposure (ENM + Pop + LC)',
                 discreteColors: {
                     0: '#000000', 1: '#FFFFBE', 2: '#FFDD00',
                     3: '#FFAA00', 4: '#FF6600', 6: '#FF0000', 9: '#A80000'
@@ -481,17 +467,10 @@
                 noDataValue: 15,
                 labels: ['No Risk', 'Very High Risk'],
                 description: '',
-                infoDescription: 'Ensemble mean across 25 parameter scenarios (5 alpha × 5 blend steepness) ' +
-                    'where baseline risk is adjusted by empirical land cover weights. Weights compare ' +
-                    'outbreak-location land cover frequency against regional background availability, bounded ' +
-                    'to [0.7, 1.3]. Separate weights for Bangladesh/West Bengal and Kerala are blended ' +
-                    'spatially via a sigmoid function centered at 78°E. Built area is the only land cover ' +
-                    'class with a statistically supported association with outbreak locations (permutation ' +
-                    'p=0.002) and the only class carrying an above-neutral weight; it also holds 73.9–76.3% ' +
-                    'of the regional population. Land cover weights are association-based modifiers, not ' +
-                    'causal drivers. Dominant effect: 46.7M people reclassified from Moderate to Elevated ' +
-                    'risk in built and peri-urban Bangladesh, out of 49.8M redistributed overall. High and ' +
-                    'Very High classes retained 98.7% and 99.2% of their baseline populations.',
+                infoDescription: 'Contextual refinement of the baseline population-exposure index using region-specific land-cover weights across 25 sensitivity scenarios (5 alpha values x 5 spatial-blend settings). ' +
+                    'Weights compare land-cover representation at outbreak locations with regional background availability and are bounded to [0.7, 1.3]. They are association-based contextual modifiers, not causal estimates or evidence of improved predictive accuracy. ' +
+                    'Built area was the only positively associated land-cover class with statistical support, occurring in Bangladesh/West Bengal (permutation p=0.002). ' +
+                    'Weighting primarily affected intermediate exposure categories: approximately 46.7 million people shifted from Moderate to Elevated, while 98.7% of High and 99.2% of Very High baseline populations remained in their respective categories.',
                 customLegend: true,
                 discreteDisplay: true,
                 legendItems: [
@@ -514,16 +493,9 @@
                 noDataValue: 255,
                 labels: ['Low CV', 'High CV'],
                 description: '',
-                infoDescription: 'Coefficient of variation (SD / mean × 100) across all 25 ensemble scenarios ' +
-                    '(alpha = 0.1–0.8 × blend steepness k = 0.05–0.80). Study-area mean CV = 5.0% (SD 0.30%), ' +
-                    'computed over risk-bearing cells only. Blend steepness had negligible influence within any ' +
-                    'alpha level; alpha had a small consistent effect bounded by the [0.7, 1.3] weight clamping ' +
-                    'structure. This layer measures variation in the continuous risk value, not stability of the ' +
-                    'discrete class assignment: cells sitting near a class boundary can show low CV while still ' +
-                    'changing class between scenarios, so low CV should not be read as classification certainty. ' +
-                    'Higher CV cells — primarily in environmental transition zones and in classes with small ' +
-                    'outbreak samples (Bangladesh flooded vegetation n=3; Kerala built area n=4) — identify ' +
-                    'where results are most sensitive to parameter selection.',
+                infoDescription: 'Coefficient of variation across the 25 land-cover-weighting scenarios (5 alpha values x 5 blend-steepness values), measuring sensitivity of the continuous prioritization index to parameter selection. ' +
+                    'Mean study-area CV was approximately 5.0%, indicating generally limited variation across scenarios. Blend steepness had negligible influence, while alpha produced a small bounded effect because weights were constrained to [0.7, 1.3]. ' +
+                    'This layer measures parameter sensitivity rather than predictive uncertainty or probability of correct class assignment.',
                 customLegend: true,
                 discreteDisplay: true,
                 legendItems: [
@@ -547,13 +519,9 @@
                 noDataValue: 15,
                 labels: ['Decrease', 'Increase'],
                 description: '',
-                infoDescription: 'Normalized (0–1) difference between the blended ensemble mean and baseline ' +
-                    'ENM+Population surface. Positive values indicate cells where land cover weighting increased ' +
-                    'risk. Negative values indicate cells where weighting reduced risk. Zero indicates minimal ' +
-                    'land cover effect. Spearman rank correlation between baseline and blended surfaces = 0.999998, ' +
-                    'confirming global rank order is preserved; this layer isolates the reclassification effect ' +
-                    'concentrated in the Moderate-to-Elevated risk transition zone, corresponding to the 46.7M ' +
-                    'population reclassification in built and peri-urban Bangladesh.',
+                infoDescription: 'Difference between normalized land-cover-weighted and baseline population-exposure surfaces. Positive values identify locations where land-cover weighting increased the relative index; negative values identify decreases. ' +
+                    'The baseline and weighted surfaces retained essentially identical spatial rankings (Spearman rho = 0.999998), indicating that land-cover weighting added limited independent information to the overall spatial hierarchy. ' +
+                    'Its principal effect was refinement of intermediate exposure categories, particularly the Moderate-to-Elevated transition, rather than displacement of the highest-priority populations.',
                 customLegend: true,
                 discreteDisplay: true,
                 legendItems: [
