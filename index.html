@@ -428,6 +428,7 @@
                 mode: 'lch',
                 continuousLegend: true,
                 useSdStretch: true,
+                sdMultiplier: 2.5,
                 infoDescription: 'Coefficient of variation among ecological niche model predictions, representing spatial uncertainty associated with the GLM, MAXNET, and MARS ensemble. ' +
                     'Lower values indicate greater agreement among model predictions; higher values indicate greater relative variation. Because CV is calculated relative to mean suitability, values can become large where mean suitability approaches zero and should be interpreted alongside the ecological suitability surface. ' +
                     'This layer represents ENM/model uncertainty and is distinct from the 25-scenario parameter-sensitivity CV layer. Kerala-specific inference remains less certain because of the small regional calibration sample.'
@@ -651,7 +652,7 @@
 
         // =====================================================================
         // SD STRETCH HELPER
-        // Returns [mean - sd, mean + sd], clamped to the observed data range so
+        // Returns [mean - k*sd, mean + k*sd] (k defaults to 1), clamped to the observed data range so
         // the ramp is never wasted on values that do not occur in the raster.
         // =====================================================================
         function computeSdDomain(georaster, config) {
@@ -688,8 +689,9 @@
             }
             var sd = Math.sqrt(sumSq / count);
 
-            var lo = Math.max(mean - sd, dataMin);
-            var hi = Math.min(mean + sd, dataMax);
+            var sdMultiplier = config.sdMultiplier ?? 1;
+            var lo = Math.max(mean - sdMultiplier * sd, dataMin);
+            var hi = Math.min(mean + sdMultiplier * sd, dataMax);
             if (!(hi > lo)) return [dataMin, dataMax];
             return [lo, hi];
         }
