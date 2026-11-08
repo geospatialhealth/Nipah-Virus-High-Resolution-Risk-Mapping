@@ -689,7 +689,7 @@
             }
             var sd = Math.sqrt(sumSq / count);
 
-            var sdMultiplier = config.sdMultiplier ?? 1;
+            var sdMultiplier = (typeof config.sdMultiplier === "number" ? config.sdMultiplier : 1);
             var lo = Math.max(mean - sdMultiplier * sd, dataMin);
             var hi = Math.min(mean + sdMultiplier * sd, dataMax);
             if (!(hi > lo)) return [dataMin, dataMax];
