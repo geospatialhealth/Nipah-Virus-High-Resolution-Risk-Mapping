@@ -329,6 +329,7 @@
         };
 
         var computedDomains = {};
+        var computedSdStats = {};
 
         // M region geometry — stored on load for species clipping
         var mRegionGeometry = null;
@@ -422,12 +423,12 @@
                 file: 'enm_cv.tif',
                 name: 'ENM Coefficient of Variation (1km)',
                 colors: ['#ffffcc', '#a1dab4', '#41b6c4', '#2c7fb8', '#253494'],
-                domain: [7.774, 727.479],
+                domain: [7.77353907, 256.642716665],
                 labels: ['Low Uncertainty', 'High Uncertainty'],
                 description: '',
                 mode: 'lch',
                 continuousLegend: true,
-                useSdStretch: true,
+                useSdStretch: false, // Fixed 2.5 SD domain from verified raster statistics
                 sdMultiplier: 2.5,
                 infoDescription: 'Coefficient of variation among ecological niche model predictions, representing spatial uncertainty associated with the GLM, MAXNET, and MARS ensemble. ' +
                     'Lower values indicate greater agreement among model predictions; higher values indicate greater relative variation. Because CV is calculated relative to mean suitability, values can become large where mean suitability approaches zero and should be interpreted alongside the ecological suitability surface. ' +
@@ -692,8 +693,12 @@
             var sdMultiplier = (typeof config.sdMultiplier === "number" ? config.sdMultiplier : 1);
             var lo = Math.max(mean - sdMultiplier * sd, dataMin);
             var hi = Math.min(mean + sdMultiplier * sd, dataMax);
-            if (!(hi > lo)) return [dataMin, dataMax];
-            return [lo, hi];
+            var finalDomain = hi > lo ? [lo, hi] : [dataMin, dataMax];
+            if (config === layerConfigs['enm_cv']) {
+                computedSdStats['enm_cv'] = {mean: mean, sd: sd, min: dataMin, max: dataMax, multiplier: sdMultiplier};
+                console.info('ENM CV stretch:', computedSdStats['enm_cv'], 'display domain:', finalDomain);
+            }
+            return finalDomain;
         }
 
         // =====================================================================
@@ -990,6 +995,7 @@
 
                     layers[layerId] = layer;
                     loadedCount++;
+                    if (layerId === 'enm_cv') updateLegend();
 
                     if (layerId === 'enm') {
                         layer.addTo(map);
@@ -1098,6 +1104,12 @@
                     var stops = config.colors.map(function(c, i) { return c + ' ' + (i/(config.colors.length-1)*100) + '%'; });
                     legendDiv.innerHTML += '<div class="gradient-bar" style="background:linear-gradient(to right,' + stops.join(',') + ');"></div>';
                     legendDiv.innerHTML += '<div class="gradient-labels"><span>' + config.labels[0] + '</span><span>' + config.labels[1] + '</span></div>';
+                    if (layerId === 'enm_cv') {
+                        var range = computedDomains['enm_cv'] || config.domain;
+                        legendDiv.innerHTML += '<div style="font-size:11px;font-weight:bold;margin-top:6px;color:#253494">Color stretch: mean &plusmn; 2.5 SD (fixed)</div>';
+                        legendDiv.innerHTML += '<div style="font-size:11px;margin-top:4px">Displayed CV range: ' + range[0].toFixed(2) + ' &ndash; ' + range[1].toFixed(2) + '</div>' +
+                            '<div style="font-size:10px;color:#777">Mean: 68.34; SD: 75.32; raster max: 727.48</div>';
+                    }
                 }
                 if (config.description) legendDiv.innerHTML += '<p style="margin-top:10px;font-size:11px;color:#777;">' + config.description + '</p>';
             });
