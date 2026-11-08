@@ -430,6 +430,7 @@
                 continuousLegend: true,
                 useSdStretch: false, // Fixed 2.5 SD domain from verified raster statistics
                 sdMultiplier: 2.5,
+                contrastGamma: 0.55, // Enhance contrast within the verified 2.5 SD stretch
                 infoDescription: 'Coefficient of variation among ecological niche model predictions, representing spatial uncertainty associated with the GLM, MAXNET, and MARS ensemble. ' +
                     'Lower values indicate greater agreement among model predictions; higher values indicate greater relative variation. Because CV is calculated relative to mean suitability, values can become large where mean suitability approaches zero and should be interpreted alongside the ecological suitability surface. ' +
                     'This layer represents ENM/model uncertainty and is distinct from the 25-scenario parameter-sensitivity CV layer. Kerala-specific inference remains less certain because of the small regional calibration sample.'
@@ -981,6 +982,13 @@
                             if (value === null || value === undefined || isNaN(value)) return null;
                             if (value === 255 || value === -9999 || value === -32768 || value === -3.4e38 || Math.abs(value) > 1e10) return null;
                             if (noDataVal !== null && noDataVal !== undefined && !isNaN(noDataVal) && Math.abs(value - noDataVal) < 0.0001) return null;
+                            if (layerId === 'enm_cv') {
+                                // Preserve mean +/- 2.5 SD limits, but spread the common
+                                // low-to-mid CV values across more of the visible palette.
+                                var t = Math.min(1, Math.max(0,
+                                    (value - stretchDomain[0]) / (stretchDomain[1] - stretchDomain[0])));
+                                return chroma.scale(config.colors).mode(config.mode)(Math.pow(t, config.contrastGamma)).hex();
+                            }
                             return scale(Math.min(Math.max(value, stretchDomain[0]), stretchDomain[1])).hex();
                         };
                     }
@@ -1101,15 +1109,18 @@
                             '<i style="background:' + item.color + '"></i> ' + item.label + '</div>';
                     });
                 } else if (config.continuousLegend) {
-                    var stops = config.colors.map(function(c, i) { return c + ' ' + (i/(config.colors.length-1)*100) + '%'; });
+                    var stops;
+                    if (layerId === 'enm_cv') {
+                        var legendScale = chroma.scale(config.colors).mode(config.mode);
+                        stops = Array.from({length: 41}, function(_, i) {
+                            var t = i / 40;
+                            return legendScale(Math.pow(t, config.contrastGamma)).hex() + ' ' + (t * 100) + '%';
+                        });
+                    } else {
+                        stops = config.colors.map(function(c, i) { return c + ' ' + (i/(config.colors.length-1)*100) + '%'; });
+                    }
                     legendDiv.innerHTML += '<div class="gradient-bar" style="background:linear-gradient(to right,' + stops.join(',') + ');"></div>';
                     legendDiv.innerHTML += '<div class="gradient-labels"><span>' + config.labels[0] + '</span><span>' + config.labels[1] + '</span></div>';
-                    if (layerId === 'enm_cv') {
-                        var range = computedDomains['enm_cv'] || config.domain;
-                        legendDiv.innerHTML += '<div style="font-size:11px;font-weight:bold;margin-top:6px;color:#253494">Color stretch: mean &plusmn; 2.5 SD (fixed)</div>';
-                        legendDiv.innerHTML += '<div style="font-size:11px;margin-top:4px">Displayed CV range: ' + range[0].toFixed(2) + ' &ndash; ' + range[1].toFixed(2) + '</div>' +
-                            '<div style="font-size:10px;color:#777">Mean: 68.34; SD: 75.32; raster max: 727.48</div>';
-                    }
                 }
                 if (config.description) legendDiv.innerHTML += '<p style="margin-top:10px;font-size:11px;color:#777;">' + config.description + '</p>';
             });
